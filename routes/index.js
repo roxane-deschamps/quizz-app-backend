@@ -15,8 +15,9 @@ process.on('SIGINT', () => {
     if (err) {
       return console.error(err.message);
     }
-    console.log('Close the database connection.');
+    console.log('Closed the database connection.');
   });
+  process.exit()
 });
 
 /* GET home page. */
