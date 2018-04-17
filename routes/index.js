@@ -16,8 +16,8 @@ process.on('SIGINT', () => {
       return console.error(err.message);
     }
     console.log('Closed the database connection.');
+    process.exit()
   });
-  process.exit()
 });
 
 /* GET home page. */
@@ -26,7 +26,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/cool', function(req, res){
-  let sql = 'SELECT * FROM feedback';
+  let sql = 'SELECT * FROM feedback, reponse_question where feedback.id = reponse_question.feedback_id';
   db.all(sql, [], (err, rows)=>{
     if (err) {
       throw err;
@@ -39,23 +39,47 @@ router.get('/cool', function(req, res){
   });
 });
 
-router.post('/sendFeedback', function(req, res){
-  console.log('Receiving feedback : body ' + JSON.stringify(req.body));
-  
-  let sql = 'INSERT INTO feedback(commentaire) values(?)';
-  db.run(sql, [req.body.feedback], function(err){
+router.post('/sendAnswers', function(req, res){
+  console.log('Receiving answers : body ' + JSON.stringify(req.body));
+  console.log('inserting new feedback to link answers to');
+  let sqlFeedback = 'INSERT INTO feedback(time_reception) values(?)';
+  db.run(sqlFeedback, [Date.now()], function(err){
     if (err) {
       return console.log(err.message);
     }
-    // get the last insert id
-    console.log(`A row has been inserted with rowid ${this.lastID}`);
-    res.json(this.lastID);
+    // get the last inserted id
+    console.log(`A row of feedback has been inserted with rowid ${this.lastID}`);
+    let idFeedback = this.lastID;
+    res.send(String(idFeedback));
+    console.log('inserting answers');
+    let sqlAnswers = 'INSERT INTO reponse_question(feedback_id, num_question, reponse) values(?, ?, ?)';
+    let answers = req.body.answers;
+    answers.forEach(function(element, index){
+      db.run(sqlAnswers, [idFeedback, index+1, element], function(err){
+        if (err) {
+          return console.log(err.message);
+        }
+        console.log('Answer saved for question ' + (index+1));
+      });
+    });
+  });
+});
+
+router.post('/sendFeedback', function(req, res){
+  console.log('Receiving feedback : body ' + JSON.stringify(req.body));
+  
+  let sql = 'UPDATE feedback SET commentaire = ? WHERE id = ?;';
+  db.run(sql, [req.body.feedback.commentaire, req.body.feedback.id], function(err){
+    if (err) {
+      return console.log(err.message);
+    }
+    console.log(`The feedback has been updated`);
   })
 
 });
 
 router.use(function(req, res, next){
-  res.header("Access-Control-Allow-Origin", "http://localhost:8080");
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
