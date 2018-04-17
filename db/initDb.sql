@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS feedback(
  time_reception timestamp,
  profil varchar(10),
  eval integer,
- commentaire varchar(200)
+ commentaire varchar(200),
+ email varchar(100),
+ savoir_plus boolean
 );
 
 CREATE TABLE IF NOT EXISTS reponse_question(

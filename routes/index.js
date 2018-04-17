@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var cors = require('cors')
 
 const sqlite3 = require('sqlite3').verbose();
 
@@ -19,6 +20,8 @@ process.on('SIGINT', () => {
     process.exit()
   });
 });
+
+router.use(cors());
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -67,21 +70,26 @@ router.post('/sendAnswers', function(req, res){
 
 router.post('/sendFeedback', function(req, res){
   console.log('Receiving feedback : body ' + JSON.stringify(req.body));
+
+  // feedback:{
+  //   id:null,
+  //   note:null,
+  //   commentaire:'',
+  //   savoirPlus:false,
+  //   email:'',
+  //   profil:null
+  // }
   
-  let sql = 'UPDATE feedback SET commentaire = ? WHERE id = ?;';
-  db.run(sql, [req.body.feedback.commentaire, req.body.feedback.id], function(err){
+  let sql = 'UPDATE feedback SET commentaire = ?, profil = ?, eval = ?, savoir_plus = ?, email = ? WHERE id = ?;';
+  let feedback = req.body.feedback;
+  db.run(sql, [feedback.commentaire, feedback.profil, feedback.note, feedback.savoirPlus, feedback.email, feedback.id], function(err){
     if (err) {
       return console.log(err.message);
     }
     console.log(`The feedback has been updated`);
+    res.json('OK');
   })
 
-});
-
-router.use(function(req, res, next){
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
 });
 
 
