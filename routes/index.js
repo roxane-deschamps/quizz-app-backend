@@ -28,8 +28,8 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.get('/cool', function(req, res){
-  let sql = 'SELECT * FROM feedback, reponse_question where feedback.id = reponse_question.feedback_id';
+router.get('/getFeedbacks', function(req, res){
+  let sql = 'SELECT ID, GROUP_CONCAT(reponse) as reponses, time_reception, profil, eval, commentaire, email, savoir_plus FROM (SELECT feedback.ID as ID, feedback.time_reception as time_reception, feedback.profil as profil, feedback.eval as eval, feedback.commentaire as commentaire, feedback.email as email, feedback.savoir_plus as savoir_plus, rep.reponse as reponse FROM feedback, reponse_question rep where feedback.id = rep.feedback_id ORDER BY rep.num_question) GROUP BY ID, time_reception, profil, eval, commentaire, email, savoir_plus;';
   db.all(sql, [], (err, rows)=>{
     if (err) {
       throw err;
